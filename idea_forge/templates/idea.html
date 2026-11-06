@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}{% if missing %}Not found{% else %}{{ idea.name }}{% endif %} · Idea Forge{% endblock %}
+{% block content %}
+{% if missing %}
+<header class="page-head">
+  <h1>Idea not found</h1>
+  <p class="lede">That idea is not in the forge.</p>
+</header>
+<p><a class="text-link" href="{{ url_for('feed') }}">Back to the feed</a></p>
+{% else %}
+<article class="detail">
+  <p class="back"><a class="text-link" href="{{ url_for('feed') }}">Back to the feed</a></p>
+  <header class="detail__head">
+    <h1>{{ idea.name }}</h1>
+    <p class="detail__pitch">{{ idea.pitch }}</p>
+  </header>
+
+  <section aria-labelledby="summary-title">
+    <h2 id="summary-title">Summary</h2>
+    {% if idea.illustrative %}
+    <p class="notice">Illustrative example. Not a cited fact.</p>
+    {% endif %}
+    <p>{{ idea.summary }}</p>
+    <dl class="fact-list">
+      <div>
+        <dt>Area</dt>
+        <dd>{{ idea.area }}</dd>
+      </div>
+      <div>
+        <dt>Pattern</dt>
+        <dd>{{ idea.pattern_label }}</dd>
+      </div>
+      <div>
+        <dt>Twist</dt>
+        <dd>{{ idea.twist_label }}. {{ idea.twist_note }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section aria-labelledby="ranking-title">
+    <h2 id="ranking-title">Ranking</h2>
+    <div class="ranking-layout">
+      {% with ring_svg=score_ring(idea.score) %}
+        {% include "_viz.html" %}
+      {% endwith %}
+      <div>
+        <p>Impact, portfolio, and feasibility are author judgments on a 0 to 100 scale. They are not measurements. The score is recomputed from these judgments and the current weights. It is not stored.</p>
+        <dl class="judgment-list">
+          <div>
+            <dt>Impact judgment</dt>
+            <dd>{{ idea.impact }} <span class="weight">weight {{ weight_impact }}</span></dd>
+          </div>
+          <div>
+            <dt>Portfolio judgment</dt>
+            <dd>{{ idea.portfolio }} <span class="weight">weight {{ weight_portfolio }}</span></dd>
+          </div>
+          <div>
+            <dt>Feasibility judgment</dt>
+            <dd>{{ idea.feasibility }} <span class="weight">weight {{ weight_feasibility }}</span></dd>
+          </div>
+          <div>
+            <dt>Score</dt>
+            <dd>{{ idea.score }}</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="time-title">
+    <h2 id="time-title">Time</h2>
+    <p class="estimate">Estimate: {{ idea.weeks }} weeks</p>
+    <p>Difficulty: {{ idea.difficulty }}</p>
+    <p>This week count is a planning estimate from the pattern's scope and difficulty. It is not a measured build time. The difficulty label comes from the catalog.</p>
+  </section>
+
+  <section aria-labelledby="considerations-title">
+    <h2 id="considerations-title">Considerations</h2>
+    <p>Planning notes, written as guidance. Not findings from a study.</p>
+    <dl class="fact-list">
+      <div>
+        <dt>Risk</dt>
+        <dd>{{ idea.considerations.risk }}</dd>
+      </div>
+      <div>
+        <dt>Ethics</dt>
+        <dd>{{ idea.considerations.ethics }}</dd>
+      </div>
+      <div>
+        <dt>Cost</dt>
+        <dd>{{ idea.considerations.cost }}</dd>
+      </div>
+      <div>
+        <dt>Maintenance</dt>
+        <dd>{{ idea.considerations.maintenance }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  <section aria-labelledby="status-title">
+    <h2 id="status-title">Status</h2>
+    <p>Current status: {{ idea.status }}</p>
+    <form method="post" action="{{ url_for('idea_status', idea_id=idea.id) }}" class="stack-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label for="status-select">Change status
+        <select id="status-select" name="status">
+          {% for value, label in statuses %}
+          <option value="{{ value }}" {% if value == idea.status %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">Save status</button>
+    </form>
+  </section>
+
+  <section aria-labelledby="export-title">
+    <h2 id="export-title">Export</h2>
+    <p><a class="text-link" href="{{ url_for('idea_markdown', idea_id=idea.id) }}">Download markdown</a></p>
+  </section>
+</article>
+{% endif %}
+{% endblock %}
