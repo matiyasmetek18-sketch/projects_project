@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Ideas · Idea Forge{% endblock %}
+{% block content %}
+<header class="page-head">
+  <h1>Ideas</h1>
+  <p class="lede">Short ideas from an illustrative catalog, ranked by author judgments. Week counts are planning estimates.</p>
+</header>
+
+<form class="filters" method="get" action="{{ url_for('feed') }}">
+  <label for="filter-area">Area
+    <select id="filter-area" name="area">
+      <option value="" {% if not area %}selected{% endif %}>Any area</option>
+      {% for item in areas %}
+      <option value="{{ item }}" {% if item == area %}selected{% endif %}>{{ item }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label for="filter-difficulty">Difficulty
+    <select id="filter-difficulty" name="difficulty">
+      <option value="" {% if not difficulty %}selected{% endif %}>Any difficulty</option>
+      {% for item in difficulties %}
+      <option value="{{ item }}" {% if item == difficulty %}selected{% endif %}>{{ item }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label for="filter-status">Status
+    <select id="filter-status" name="status">
+      <option value="" {% if not status %}selected{% endif %}>Ranked</option>
+      {% for value, label in statuses %}
+      <option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <label for="filter-search">Search
+    <input id="filter-search" type="search" name="q" value="{{ q }}" placeholder="Name or pitch">
+  </label>
+  <button type="submit">Apply</button>
+</form>
+<p class="filters__note">The ranked feed leaves out dismissed ideas.</p>
+
+{% if top_areas %}
+<section class="top-areas" aria-labelledby="top-areas-title">
+  <h2 id="top-areas-title">Top areas</h2>
+  <ol>
+    {% for area_row in top_areas %}
+    <li>
+      <span class="top-areas__name">{{ area_row.name }}</span>
+      <span class="top-areas__count">{{ area_row.count }}</span>
+    </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endif %}
+
+{% if show_dismissed_note %}
+<p class="filters__note">These ideas are dismissed and excluded from ranking.</p>
+{% endif %}
+
+{# Iterate group['items']. Bracket access avoids calling dict.items. #}
+{% for group in groups %}
+  {% if group['label'] %}
+  <h2 class="group-label">{{ group['label'] }}</h2>
+  {% endif %}
+  {% if group['items'] %}
+  <div class="card-grid">
+    {% for idea in group['items'] %}
+    <a class="idea-card" href="{{ url_for('idea_detail', idea_id=idea.id) }}">
+      {% with ring_svg=score_ring(idea.score) %}
+        {% include "_viz.html" %}
+      {% endwith %}
+      <h2 class="idea-card__name">{{ idea.name }}</h2>
+      <p class="idea-card__pitch">{{ idea.pitch }}</p>
+      <div class="idea-card__meta">
+        <p class="idea-card__weeks">Estimate: {{ idea.weeks }} weeks</p>
+        <p class="idea-card__difficulty">Difficulty: {{ idea.difficulty }}</p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+{% endfor %}
+
+{% if not has_ideas %}
+<p class="empty">No ideas match these filters.</p>
+{% endif %}
+{% endblock %}

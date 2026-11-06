@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Idea Forge{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='forge.css') }}">
+</head>
+<body>
+  <a class="skip" href="#content">Skip to content</a>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <a class="wordmark" href="{{ url_for('feed') }}">Idea Forge</a>
+      <nav class="nav" aria-label="Primary">
+        <a href="{{ url_for('feed') }}" {% if request.endpoint == 'feed' %}aria-current="page"{% endif %}>Feed</a>
+        <a href="{{ url_for('settings') }}" {% if request.endpoint == 'settings' %}aria-current="page"{% endif %}>Settings</a>
+      </nav>
+    </div>
+  </header>
+  <main id="content" class="page">
+    {% block content %}{% endblock %}
+  </main>
+  <script src="{{ url_for('static', filename='forge.js') }}"></script>
+</body>
+</html>
