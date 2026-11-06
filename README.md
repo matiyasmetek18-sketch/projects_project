@@ -1,6 +1,6 @@
 # Idea Forge
 
-Offline ranked feed of short product ideas. The catalog is illustrative. There is no model and the app makes no network calls.
+Offline ranked feed of short public-benefit ideas. The catalog is author-framed. There is no model and the app makes no network calls.
 
 ## Run
 
@@ -43,11 +43,13 @@ Every POST requires the session CSRF token. A missing or invalid token returns 4
 score = impact * 0.45 + portfolio * 0.25 + feasibility * 0.30
 ```
 
-Each component is an author judgment from 0 to 100. The score is rounded half up to an integer. It is recomputed on every request from the current weights and the catalog judgments. It is not stored.
+In plain language the default score is 45% of the impact number, plus 25% of the portfolio number, plus 30% of the feasibility number, rounded to a whole number. The percentage is how much of the blend that part counts for.
 
-Settings can change the three weights. The defaults are 45, 25, and 30. If they do not sum to 100, they are renormalized before the next response. Dismissed ideas are excluded from the ranked feed.
+Each part is an author judgment from 0 to 100, not a measurement. The score is rounded half up to an integer. It is recomputed on every request from the current weights and is not stored.
 
-Feasibility starts from the pattern judgment and is shifted by a small catalog adjustment for the twist, then clamped to 0–100. That shift is still an author judgment, not a measurement.
+Settings can change the three shares. The defaults are 45, 25, and 30. If they do not sum to 100, they are scaled so they do before the next response. Dismissed ideas stay off the ranked feed.
+
+Feasibility starts from the pattern's number and is shifted by a small catalog adjustment for the twist, then clamped to 0–100. That shift is still an author judgment, not a measurement.
 
 ## Time estimate
 
@@ -61,9 +63,9 @@ weeks = scope + extra
 
 ## Catalog
 
-Every problem is an illustrative example. None of them cite a source. Do not read the summaries as research findings.
+Every problem is an author-framed public-benefit idea (health, water, learning, safety, civic access, environment, and similar). None of them cite a source, and none of them state a measured impact. Do not read the summaries as research findings.
 
-Component scores are author judgments for ranking. Considerations (risk, ethics, cost, maintenance) are planning notes, written as guidance, not findings from a study.
+Component scores are author judgments for ranking. Week counts are planning estimates. Considerations (risk, ethics, cost, maintenance) are planning notes, written as guidance, not findings from a study.
 
 ## Tests
 

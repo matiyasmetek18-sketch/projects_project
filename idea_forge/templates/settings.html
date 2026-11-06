@@ -4,25 +4,28 @@
 <article class="settings">
   <header class="page-head">
     <h1>Settings</h1>
-    <p class="lede">Impact, portfolio, and feasibility are author judgments on a 0 to 100 scale. They are not measurements. Weights change how those judgments combine and take effect on the next request.</p>
+    <p class="lede">The score blends three numbers, each from 0 to 100: impact, portfolio, and feasibility. These are author judgments, not measurements. The percentage is how much of the blend that part counts for.</p>
   </header>
-  <p>The default is 45 / 25 / 30, which is impact × 0.45 + portfolio × 0.25 + feasibility × 0.30. If the three weights do not sum to 100, they are renormalized. The score is rounded to an integer and is not stored. Dismissed ideas stay out of the ranked feed.</p>
+  <p>By default the score is 45% of the impact number, plus 25% of the portfolio number, plus 30% of the feasibility number, rounded to a whole number. The fields below set those shares. If they do not sum to 100, they are scaled so they do. The score is recomputed on the next request from the current weights and is not stored. Dismissed ideas stay off the ranked feed.</p>
   {% if error %}
   <p class="form-error" role="alert">{{ error }}</p>
   {% endif %}
-  <p class="effective">Effective weights: {{ effective_impact }} / {{ effective_portfolio }} / {{ effective_feasibility }}</p>
+  <p class="effective">Effective shares: {{ effective_impact }}% / {{ effective_portfolio }}% / {{ effective_feasibility }}%</p>
   <form method="post" action="{{ url_for('settings') }}" class="stack-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-    <label for="weight-impact">Impact weight
+    <div class="field">
+      <label for="weight-impact">Impact share</label>
       <input id="weight-impact" name="weight_impact" type="number" min="0" max="100" step="1" required value="{{ weight_impact }}">
-    </label>
-    <label for="weight-portfolio">Portfolio weight
+    </div>
+    <div class="field">
+      <label for="weight-portfolio">Portfolio share</label>
       <input id="weight-portfolio" name="weight_portfolio" type="number" min="0" max="100" step="1" required value="{{ weight_portfolio }}">
-    </label>
-    <label for="weight-feasibility">Feasibility weight
+    </div>
+    <div class="field">
+      <label for="weight-feasibility">Feasibility share</label>
       <input id="weight-feasibility" name="weight_feasibility" type="number" min="0" max="100" step="1" required value="{{ weight_feasibility }}">
-    </label>
-    <button type="submit">Save weights</button>
+    </div>
+    <button type="submit">Save shares</button>
   </form>
 </article>
 {% endblock %}

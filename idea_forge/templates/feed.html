@@ -3,38 +3,51 @@
 {% block content %}
 <header class="page-head">
   <h1>Ideas</h1>
-  <p class="lede">Short ideas from an illustrative catalog, ranked by author judgments. Week counts are planning estimates.</p>
+  <p class="lede">Author-framed public-benefit ideas, ranked for planning. Scores are author judgments, not measured impacts. Week counts are planning estimates.</p>
 </header>
 
 <form class="filters" method="get" action="{{ url_for('feed') }}">
-  <label for="filter-area">Area
-    <select id="filter-area" name="area">
-      <option value="" {% if not area %}selected{% endif %}>Any area</option>
-      {% for item in areas %}
-      <option value="{{ item }}" {% if item == area %}selected{% endif %}>{{ item }}</option>
-      {% endfor %}
-    </select>
-  </label>
-  <label for="filter-difficulty">Difficulty
-    <select id="filter-difficulty" name="difficulty">
-      <option value="" {% if not difficulty %}selected{% endif %}>Any difficulty</option>
-      {% for item in difficulties %}
-      <option value="{{ item }}" {% if item == difficulty %}selected{% endif %}>{{ item }}</option>
-      {% endfor %}
-    </select>
-  </label>
-  <label for="filter-status">Status
-    <select id="filter-status" name="status">
-      <option value="" {% if not status %}selected{% endif %}>Ranked</option>
-      {% for value, label in statuses %}
-      <option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>
-      {% endfor %}
-    </select>
-  </label>
-  <label for="filter-search">Search
+  <div class="field">
+    <label for="filter-area">Area</label>
+    <div class="select-shell">
+      <select id="filter-area" name="area">
+        <option value="" {% if not area %}selected{% endif %}>Any area</option>
+        {% for item in areas %}
+        <option value="{{ item }}" {% if item == area %}selected{% endif %}>{{ item }}</option>
+        {% endfor %}
+      </select>
+      <span class="select-shell__mark" aria-hidden="true"></span>
+    </div>
+  </div>
+  <div class="field">
+    <label for="filter-difficulty">Difficulty</label>
+    <div class="select-shell">
+      <select id="filter-difficulty" name="difficulty">
+        <option value="" {% if not difficulty %}selected{% endif %}>Any difficulty</option>
+        {% for item in difficulties %}
+        <option value="{{ item }}" {% if item == difficulty %}selected{% endif %}>{{ item }}</option>
+        {% endfor %}
+      </select>
+      <span class="select-shell__mark" aria-hidden="true"></span>
+    </div>
+  </div>
+  <div class="field">
+    <label for="filter-status">Status</label>
+    <div class="select-shell">
+      <select id="filter-status" name="status">
+        <option value="" {% if not status %}selected{% endif %}>Ranked</option>
+        {% for value, label in statuses %}
+        <option value="{{ value }}" {% if value == status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <span class="select-shell__mark" aria-hidden="true"></span>
+    </div>
+  </div>
+  <div class="field">
+    <label for="filter-search">Search</label>
     <input id="filter-search" type="search" name="q" value="{{ q }}" placeholder="Name or pitch">
-  </label>
-  <button type="submit">Apply</button>
+  </div>
+  <button class="filters__apply" type="submit">Apply</button>
 </form>
 <p class="filters__note">The ranked feed leaves out dismissed ideas.</p>
 
