@@ -136,15 +136,24 @@ class ForgeTestCase(unittest.TestCase):
 
 class FeedAndStaticTests(ForgeTestCase):
     def test_feed_renders_css_link(self):
-        self.add("chart", "queue")
+        self.add("clinics", "map")
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
         html = response.get_data(as_text=True)
         self.assertIn("/static/forge.css", html)
         self.assertIn("/static/forge.js", html)
-        self.assertIn("Chart queue", html)
+        self.assertIn("Clinic map", html)
         self.assertIn("Estimate:", html)
         self.assertIn("Difficulty:", html)
+        self.assertIn("Author-framed public-benefit ideas", html)
+        self.assertIn("not measured impacts", html)
+        self.assertIn("planning estimates", html)
+        self.assertIn('name="area"', html)
+        self.assertIn('name="difficulty"', html)
+        self.assertIn('name="status"', html)
+        self.assertIn(">Area<", html)
+        self.assertIn(">Difficulty<", html)
+        self.assertIn(">Status<", html)
 
     def test_static_css_and_js(self):
         css = self.client.get("/static/forge.css")
@@ -158,7 +167,16 @@ class FeedAndStaticTests(ForgeTestCase):
         self.assertNotIn("conic-gradient", stylesheet)
         self.assertIn("translateY(-2px)", stylesheet)
         self.assertIn(".score-ring", stylesheet)
-        self.assertGreater(len(js.data), 0)
+        self.assertIn(".picker__button", stylesheet)
+        self.assertIn(".picker__list", stylesheet)
+        script = js.get_data(as_text=True)
+        self.assertGreater(len(script), 0)
+        self.assertIn("ArrowDown", script)
+        self.assertIn("ArrowUp", script)
+        self.assertIn("Escape", script)
+        self.assertIn("typeahead", script)
+        self.assertNotIn("http://", script)
+        self.assertNotIn("https://", script)
 
     def test_templates_have_no_inline_styles_or_urls(self):
         template_dir = os.path.join(os.path.dirname(web.__file__), "templates")
@@ -183,7 +201,7 @@ class RankingTests(ForgeTestCase):
         self.assertEqual(generator.rank_score(0, 100, 0, (45, 25, 30)), 25)
         self.assertEqual(generator.rank_score(0, 0, 100, (45, 25, 30)), 30)
         self.assertEqual(generator.rank_score(1, 0, 0, (1, 1, 0)), 1)
-        idea_id = self.add("chart", "queue", "paper")
+        idea_id = self.add("clinics", "map", "paper")
         idea = generator.assemble(storage.get_idea(self.db, idea_id), (45, 25, 30))
         expected = generator.rank_score(idea["impact"], idea["portfolio"], idea["feasibility"], (45, 25, 30))
         self.assertEqual(idea["score"], expected)
@@ -191,25 +209,25 @@ class RankingTests(ForgeTestCase):
         self.assertIn(">%d<" % expected, html)
 
     def test_dismissed_absent_from_ranked_feed(self):
-        self.add("tools", "list")
-        gone = self.add("chart", "board")
+        self.add("records", "guide")
+        gone = self.add("shelters", "hub")
         self.assertTrue(storage.set_status(self.db, gone, "dismissed"))
         html = self.client.get("/").get_data(as_text=True)
-        self.assertIn("Tool list", html)
-        self.assertNotIn("Chart board", html)
+        self.assertIn("Record guide", html)
+        self.assertNotIn("Shelter hub", html)
 
     def test_filter_by_area(self):
-        self.add("chart", "queue")
-        self.add("tools", "list")
-        html = self.client.get("/?area=Clinics").get_data(as_text=True)
-        self.assertIn("Chart queue", html)
-        self.assertNotIn("Tool list", html)
+        self.add("clinics", "map")
+        self.add("records", "guide")
+        html = self.client.get("/?area=Health").get_data(as_text=True)
+        self.assertIn("Clinic map", html)
+        self.assertNotIn("Record guide", html)
 
     def test_settings_change_reranks_on_next_get(self):
-        self.add("chart", "board", "paper")
-        self.add("tools", "list", "paper")
+        self.add("shelters", "hub", "paper")
+        self.add("records", "guide", "paper")
         before = self.client.get("/").get_data(as_text=True)
-        self.assertLess(before.index("Chart board"), before.index("Tool list"))
+        self.assertLess(before.index("Shelter hub"), before.index("Record guide"))
         denied = self.client.post(
             "/settings",
             data={
@@ -220,7 +238,7 @@ class RankingTests(ForgeTestCase):
         )
         self.assertEqual(denied.status_code, 400)
         still = self.client.get("/").get_data(as_text=True)
-        self.assertLess(still.index("Chart board"), still.index("Tool list"))
+        self.assertLess(still.index("Shelter hub"), still.index("Record guide"))
         token = self.token_from("/settings")
         saved = self.client.post(
             "/settings",
@@ -233,12 +251,12 @@ class RankingTests(ForgeTestCase):
         )
         self.assertEqual(saved.status_code, 302)
         after = self.client.get("/").get_data(as_text=True)
-        self.assertLess(after.index("Tool list"), after.index("Chart board"))
+        self.assertLess(after.index("Record guide"), after.index("Shelter hub"))
 
 
 class StatusAndExportTests(ForgeTestCase):
     def test_status_post_requires_csrf_and_persists(self):
-        idea_id = self.add("chart", "board")
+        idea_id = self.add("shelters", "hub")
         missing = self.client.post("/ideas/%d/status" % idea_id, data={"status": "dismissed"})
         self.assertEqual(missing.status_code, 400)
         self.assertEqual(storage.get_idea(self.db, idea_id)["status"], "new")
@@ -263,16 +281,28 @@ class StatusAndExportTests(ForgeTestCase):
         self.assertIn("Status", html)
         self.assertIn("Export", html)
         self.assertIn("author judgments", html)
-        self.assertIn("Illustrative example", html)
+        self.assertIn("Author-framed public-benefit idea", html)
+        self.assertIn("name=\"status\"", html)
+        self.assertIn("name=\"csrf_token\"", html)
+        self.assertIn(">Change status<", html)
+        self.assertNotIn("Impact judgment", html)
+        self.assertNotIn("weight 45", html)
+        self.assertIn("% share", html)
+        self.assertIn("out of 100", html)
+        self.assertIn("not stored", html)
 
     def test_markdown_export(self):
-        idea_id = self.add("loans", "note")
+        idea_id = self.add("ballots", "alert")
         response = self.client.get("/ideas/%d.md" % idea_id)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.mimetype, "text/markdown")
         text = response.get_data(as_text=True)
-        self.assertIn("Loan note", text)
-        self.assertIn("Illustrative example", text)
+        self.assertIn("Ballot alert", text)
+        self.assertIn("Author-framed public-benefit idea", text)
+        self.assertIn("author judgments", text)
+        self.assertNotIn("Impact judgment", text)
+        self.assertNotIn("weight ", text)
+        self.assertIn("% share", text)
 
 
 class TemplateGroupTests(ForgeTestCase):
@@ -293,10 +323,10 @@ class TemplateGroupTests(ForgeTestCase):
         with self.app.test_request_context("/"):
             html = render_template(
                 "feed.html",
-                groups=[{"label": "Schools", "items": [idea]}],
+                groups=[{"label": "Health", "items": [idea]}],
                 has_ideas=True,
-                top_areas=[{"name": "Schools", "count": 2}],
-                areas=["Schools"],
+                top_areas=[{"name": "Health", "count": 2}],
+                areas=["Health"],
                 difficulties=["Low", "Moderate", "High"],
                 statuses=(("new", "New"),),
                 area="",
@@ -306,7 +336,7 @@ class TemplateGroupTests(ForgeTestCase):
                 show_dismissed_note=False,
             )
         self.assertIn("Grouped slip", html)
-        self.assertIn("Schools", html)
+        self.assertIn("Health", html)
         self.assertIn(">2<", html)
 
 
@@ -328,6 +358,50 @@ class CatalogTests(ForgeTestCase):
         self.assertEqual(catalog.estimate_weeks({"scope": 3, "difficulty": "Low"}), 4)
         self.assertEqual(catalog.estimate_weeks({"scope": 4, "difficulty": "Moderate"}), 6)
         self.assertEqual(catalog.estimate_weeks({"scope": 5, "difficulty": "High"}), 9)
+        allowed = set(["Water", "Health", "Learning", "Safety", "Civic", "Environment"])
+        self.assertTrue(set(catalog.areas()) <= allowed)
+        self.assertGreaterEqual(len(catalog.areas()), 6)
+        banned = ("million", "http://", "https://", "checklist", "permission slip")
+        for problem in catalog.PROBLEMS:
+            summary = problem["summary"].lower()
+            for word in banned:
+                self.assertNotIn(word, summary)
+        self.assertNotIn("Clinics", catalog.areas())
+        self.assertNotIn("Schools", catalog.areas())
+
+    def test_ranking_copy_explains_the_blend(self):
+        idea_id = self.add("shelters", "hub", "paper")
+        idea = generator.assemble(storage.get_idea(self.db, idea_id), (45, 25, 30))
+        html = self.client.get("/ideas/%d" % idea_id).get_data(as_text=True)
+        formula = "%s%% of %s, plus %s%% of %s, plus %s%% of %s, rounded." % (
+            "45",
+            idea["impact"],
+            "25",
+            idea["portfolio"],
+            "30",
+            idea["feasibility"],
+        )
+        self.assertIn(formula, html)
+        self.assertIn("Blended score", html)
+        self.assertIn("how much of the blend that part counts for", html)
+        self.assertIn("author judgments on a 0", html)
+        self.assertIn("not measurements", html)
+        self.assertIn("not stored", html)
+        self.assertNotIn("Impact judgment", html)
+        self.assertNotIn("Portfolio judgment", html)
+        self.assertNotIn("Feasibility judgment", html)
+        settings = self.client.get("/settings").get_data(as_text=True)
+        self.assertIn("45% of the impact number, plus 25% of the portfolio number, plus 30% of the feasibility number", settings)
+        self.assertIn("how much of the blend that part counts for", settings)
+        self.assertIn("author judgments, not measurements", settings)
+        self.assertNotIn("each judgment", settings)
+
+    def test_share_bar_svg_has_no_inline_colors(self):
+        svg = viz.share_bar_svg(44)
+        self.assertNotIn("fill=", svg)
+        self.assertNotIn("stroke=", svg)
+        self.assertNotIn("style=", svg)
+        self.assertIn('width="44"', svg)
 
     def test_next_idea_is_deterministic(self):
         first = generator.next_spec(set())

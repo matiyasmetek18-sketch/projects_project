@@ -84,6 +84,7 @@ def create_app():
         return {
             "csrf_token": ensure_csrf(),
             "score_ring": viz.score_ring_svg,
+            "share_bar": viz.share_bar_svg,
         }
 
     @app.before_request
@@ -166,7 +167,7 @@ def create_app():
             for key in ("weight_impact", "weight_portfolio", "weight_feasibility"):
                 value = _parse_weight(request.form.get(key, ""))
                 if value is None:
-                    error = "Enter a weight from 0 to 100 for each judgment."
+                    error = "Enter a number from 0 to 100 for each share."
                     break
                 parsed.append(value)
             if error is None:

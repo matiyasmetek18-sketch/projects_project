@@ -18,7 +18,7 @@
   <section aria-labelledby="summary-title">
     <h2 id="summary-title">Summary</h2>
     {% if idea.illustrative %}
-    <p class="notice">Illustrative example. Not a cited fact.</p>
+    <p class="notice">Author-framed public-benefit idea. Not a cited fact.</p>
     {% endif %}
     <p>{{ idea.summary }}</p>
     <dl class="fact-list">
@@ -40,29 +40,45 @@
   <section aria-labelledby="ranking-title">
     <h2 id="ranking-title">Ranking</h2>
     <div class="ranking-layout">
-      {% with ring_svg=score_ring(idea.score) %}
-        {% include "_viz.html" %}
-      {% endwith %}
-      <div>
-        <p>Impact, portfolio, and feasibility are author judgments on a 0 to 100 scale. They are not measurements. The score is recomputed from these judgments and the current weights. It is not stored.</p>
-        <dl class="judgment-list">
+      <div class="score-hero">
+        {% with ring_svg=score_ring(idea.score) %}
+          {% include "_viz.html" %}
+        {% endwith %}
+        <p class="score-hero__label">Blended score</p>
+      </div>
+      <div class="rank-body">
+        <p class="rank-math">{{ weight_impact }}% of {{ idea.impact }}, plus {{ weight_portfolio }}% of {{ idea.portfolio }}, plus {{ weight_feasibility }}% of {{ idea.feasibility }}, rounded.</p>
+        <p class="rank-how">Each part is a number from 0 to 100. The percentage is how much of the blend that part counts for.</p>
+        <dl class="share-list">
           <div>
-            <dt>Impact judgment</dt>
-            <dd>{{ idea.impact }} <span class="weight">weight {{ weight_impact }}</span></dd>
+            <dt>Impact</dt>
+            <dd>
+              <span class="share-num">{{ idea.impact }}</span>
+              <span class="share-scale">out of 100</span>
+              <span class="share-pct">{{ weight_impact }}% share</span>
+              {{ share_bar(idea.impact)|safe }}
+            </dd>
           </div>
           <div>
-            <dt>Portfolio judgment</dt>
-            <dd>{{ idea.portfolio }} <span class="weight">weight {{ weight_portfolio }}</span></dd>
+            <dt>Portfolio</dt>
+            <dd>
+              <span class="share-num">{{ idea.portfolio }}</span>
+              <span class="share-scale">out of 100</span>
+              <span class="share-pct">{{ weight_portfolio }}% share</span>
+              {{ share_bar(idea.portfolio)|safe }}
+            </dd>
           </div>
           <div>
-            <dt>Feasibility judgment</dt>
-            <dd>{{ idea.feasibility }} <span class="weight">weight {{ weight_feasibility }}</span></dd>
-          </div>
-          <div>
-            <dt>Score</dt>
-            <dd>{{ idea.score }}</dd>
+            <dt>Feasibility</dt>
+            <dd>
+              <span class="share-num">{{ idea.feasibility }}</span>
+              <span class="share-scale">out of 100</span>
+              <span class="share-pct">{{ weight_feasibility }}% share</span>
+              {{ share_bar(idea.feasibility)|safe }}
+            </dd>
           </div>
         </dl>
+        <p class="rank-note">These are author judgments on a 0–100 scale, not measurements. The score is recomputed from the current weights and is not stored.</p>
       </div>
     </div>
   </section>
@@ -102,13 +118,17 @@
     <p>Current status: {{ idea.status }}</p>
     <form method="post" action="{{ url_for('idea_status', idea_id=idea.id) }}" class="stack-form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-      <label for="status-select">Change status
-        <select id="status-select" name="status">
-          {% for value, label in statuses %}
-          <option value="{{ value }}" {% if value == idea.status %}selected{% endif %}>{{ label }}</option>
-          {% endfor %}
-        </select>
-      </label>
+      <div class="field">
+        <label for="status-select">Change status</label>
+        <div class="select-shell">
+          <select id="status-select" name="status">
+            {% for value, label in statuses %}
+            <option value="{{ value }}" {% if value == idea.status %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <span class="select-shell__mark" aria-hidden="true"></span>
+        </div>
+      </div>
       <button type="submit">Save status</button>
     </form>
   </section>
